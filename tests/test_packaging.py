@@ -7,13 +7,13 @@ import tomllib
 ROOT = Path(__file__).parents[1]
 
 
-def test_release_version_is_unified_at_0_3_0():
+def test_release_version_is_unified_at_0_3_1():
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())
     package = (ROOT / "src/mint_cua_relay/__init__.py").read_text()
     manifest = (ROOT / "hermes-plugin/plugin.yaml").read_text()
-    assert project["project"]["version"] == "0.3.0"
-    assert '__version__ = "0.3.0"' in package
-    assert 'version: "0.3.0"' in manifest
+    assert project["project"]["version"] == "0.3.1"
+    assert '__version__ = "0.3.1"' in package
+    assert 'version: "0.3.1"' in manifest
 
 
 def test_bootstrap_verifies_signed_checksum_before_archive_checksum():
@@ -39,9 +39,9 @@ def test_bootstrap_validates_tar_members_and_exact_installer_path():
 
 def test_management_command_reports_version_and_status(tmp_path):
     install_root = tmp_path / "mint-cua-relay"
-    release = install_root / "releases" / "0.3.0"
+    release = install_root / "releases" / "0.3.1"
     release.mkdir(parents=True)
-    (release / "VERSION").write_text("0.3.0\n")
+    (release / "VERSION").write_text("0.3.1\n")
     (install_root / "current").symlink_to(release)
     env = os.environ | {"MINT_CUA_INSTALL_ROOT": str(install_root)}
 
@@ -53,16 +53,16 @@ def test_management_command_reports_version_and_status(tmp_path):
         [ROOT / "scripts/mint-cua", "status"], env=env, text=True,
         capture_output=True, check=True,
     )
-    assert version.stdout.strip() == "mint-cua 0.3.0"
-    assert "Installed version: 0.3.0" in status.stdout
+    assert version.stdout.strip() == "mint-cua 0.3.1"
+    assert "Installed version: 0.3.1" in status.stdout
     assert f"Current release: {release}" in status.stdout
 
 
 def test_update_refuses_downgrade_without_explicit_opt_in(tmp_path):
     install_root = tmp_path / "mint-cua-relay"
-    release = install_root / "releases" / "0.3.0"
+    release = install_root / "releases" / "0.3.1"
     release.mkdir(parents=True)
-    (release / "VERSION").write_text("0.3.0\n")
+    (release / "VERSION").write_text("0.3.1\n")
     (install_root / "current").symlink_to(release)
     env = os.environ | {"MINT_CUA_INSTALL_ROOT": str(install_root)}
     result = subprocess.run(
@@ -76,7 +76,7 @@ def test_update_refuses_downgrade_without_explicit_opt_in(tmp_path):
 def test_package_installer_derives_version_and_uses_hashed_lockfile():
     script = (ROOT / "scripts/install.sh").read_text()
     assert 'VERSION="$(python3 - "$ROOT/pyproject.toml"' in script
-    assert 'VERSION="0.3.0"' not in script
+    assert 'VERSION="0.3.1"' not in script
     assert "--require-hashes" in script
     assert '"$ROOT/requirements.lock"' in script
     assert "--no-deps --no-build-isolation" in script
@@ -126,9 +126,9 @@ def test_release_builder_emits_archive_checksum_and_optional_signature(tmp_path)
         [ROOT / "scripts/build-release.sh", str(tmp_path)], env=env, text=True,
         capture_output=True, check=True,
     )
-    archive = tmp_path / "mint-cua-relay-0.3.0.tar.gz"
-    checksum = tmp_path / "mint-cua-relay-0.3.0.tar.gz.sha256"
-    signature = tmp_path / "mint-cua-relay-0.3.0.tar.gz.sha256.sig"
+    archive = tmp_path / "mint-cua-relay-0.3.1.tar.gz"
+    checksum = tmp_path / "mint-cua-relay-0.3.1.tar.gz.sha256"
+    signature = tmp_path / "mint-cua-relay-0.3.1.tar.gz.sha256.sig"
     assert archive.exists() and checksum.exists() and signature.exists()
     subprocess.run(["sha256sum", "--check", checksum], cwd=tmp_path, check=True)
     subprocess.run([
@@ -137,10 +137,10 @@ def test_release_builder_emits_archive_checksum_and_optional_signature(tmp_path)
     ], check=True)
     with tarfile.open(archive) as release:
         names = set(release.getnames())
-    assert "mint-cua-relay-0.3.0/install.sh" in names
-    assert "mint-cua-relay-0.3.0/scripts/mint-cua" in names
-    assert "mint-cua-relay-0.3.0/release-public-key.pem" in names
-    assert "mint-cua-relay-0.3.0/requirements.lock" in names
+    assert "mint-cua-relay-0.3.1/install.sh" in names
+    assert "mint-cua-relay-0.3.1/scripts/mint-cua" in names
+    assert "mint-cua-relay-0.3.1/release-public-key.pem" in names
+    assert "mint-cua-relay-0.3.1/requirements.lock" in names
     assert not any("__pycache__" in name for name in names)
     assert not any(name.endswith(".pyc") for name in names)
     assert not any(".egg-info" in name for name in names)
@@ -162,7 +162,7 @@ def test_release_workflow_is_build_only_read_only_and_commit_pinned():
 
 def test_readme_documents_pinned_bootstrap_trust_boundary_and_update():
     readme = (ROOT / "README.md").read_text()
-    assert "https://raw.githubusercontent.com/amibidrohi/mint-cua-relay/v0.3.0/install.sh" in readme
+    assert "https://raw.githubusercontent.com/amibidrohi/mint-cua-relay/v0.3.1/install.sh" in readme
     assert "/main/install.sh" not in readme
     assert ".sha256.sig" in readme
     assert "trust" in readme.lower() and "bootstrap" in readme.lower()

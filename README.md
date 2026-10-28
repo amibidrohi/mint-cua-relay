@@ -27,10 +27,10 @@ cloudflared (Cloudflare's signed package/repository)
 cua-driver 0.21.x
 ```
 
-Install the pinned v0.3.0 public release without credentials or `sudo`:
+Install the pinned v0.3.1 public release without credentials or `sudo`:
 
 ```sh
-curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/amibidrohi/mint-cua-relay/v0.3.0/install.sh | bash
+curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/amibidrohi/mint-cua-relay/v0.3.1/install.sh | bash
 ```
 
 The downloaded bootstrap is the trust boundary: inspect or obtain that pinned
@@ -41,7 +41,7 @@ signature over the checksum before checking the archive, rejects unsafe archive
 members, and invokes only the exact versioned `scripts/install.sh` path.
 
 For an exact release, set `MINT_CUA_VERSION` on the receiving shell (for example,
-`curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/amibidrohi/mint-cua-relay/v0.3.0/install.sh | MINT_CUA_VERSION=0.3.0 bash`).
+`curl --proto '=https' --tlsv1.2 -fsSL https://raw.githubusercontent.com/amibidrohi/mint-cua-relay/v0.3.1/install.sh | MINT_CUA_VERSION=0.3.1 bash`).
 
 The installer creates an isolated venv in a versioned release directory under
 the resolved `XDG_DATA_HOME`, atomically switches the `current` symlink, adds
@@ -59,7 +59,7 @@ mint-cua version
 mint-cua status
 ```
 
-`mint-cua update 0.3.0` selects an exact version. Downgrades are rejected unless
+`mint-cua update 0.3.1` selects an exact version. Downgrades are rejected unless
 explicitly requested with `--allow-downgrade`. Updates use `flock` to prevent
 concurrent runs, verify the release checksum, build the new release completely,
 and atomically switch `current`. Active relay service instances are restarted

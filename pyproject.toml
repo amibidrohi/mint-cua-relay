@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mint-cua-relay"
-version = "0.3.0"
+version = "0.3.1"
 description = "Locally approved Cloudflare Access relay for cua-driver"
 requires-python = ">=3.11"
 dependencies = [
