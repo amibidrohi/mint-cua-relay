@@ -1,0 +1,26 @@
+[Unit]
+Description=Locally approved CUA HTTPS relay
+PartOf=graphical-session.target
+After=graphical-session.target cua-driver-relay.service
+Requires=cua-driver-relay.service
+
+[Service]
+Type=simple
+EnvironmentFile=__CONFIG_HOME__/relay.env
+ExecStart=__APP_HOME__/current/venv/bin/mint-cua-relay
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=__STATE_HOME__ %h/.cache/cua-driver
+
+[Install]
+WantedBy=default.target

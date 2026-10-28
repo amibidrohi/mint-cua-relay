@@ -1,0 +1,23 @@
+[Unit]
+Description=cua-driver daemon for Mint CUA Relay
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=__CUA_DRIVER__ serve --no-overlay
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=%h/.cache/cua-driver
+
+[Install]
+WantedBy=default.target

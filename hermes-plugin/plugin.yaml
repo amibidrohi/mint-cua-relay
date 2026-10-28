@@ -1,0 +1,12 @@
+name: mint-cua-remote
+version: "0.3.0"
+description: Cloudflare Access client for a locally approved CUA relay
+license: MIT
+provides_tools:
+  - remote_cua_call
+  - remote_cua_end_session
+requires_env:
+  - MINT_CUA_RELAY_URL
+  - CF_ACCESS_CLIENT_ID
+  - CF_ACCESS_CLIENT_SECRET
+  - CF_ACCESS_SERVICE_TOKEN_ID

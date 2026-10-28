@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+INSTALL_ROOT="${MINT_CUA_INSTALL_ROOT:-${XDG_DATA_HOME:-$HOME/.local/share}/mint-cua-relay}"
+CURRENT="$INSTALL_ROOT/current"
+API_URL="https://api.github.com/repos/amibidrohi/mint-cua-relay/releases/latest"
+CURL=(curl --fail --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2)
+
+installed_version() {
+  [[ -r "$CURRENT/VERSION" ]] || { echo "not installed"; return 1; }
+  tr -d '\r\n' < "$CURRENT/VERSION"
+}
+
+usage() {
+  echo "Usage: mint-cua {version|status|update [VERSION] [--allow-downgrade]}" >&2
+  exit 2
+}
+
+case "${1:-}" in
+  version)
+    [[ $# -eq 1 ]] || usage
+    echo "mint-cua $(installed_version)"
+    ;;
+  status)
+    [[ $# -eq 1 ]] || usage
+    version="$(installed_version)"
+    echo "Installed version: $version"
+    echo "Current release: $(readlink -f -- "$CURRENT")"
+    if command -v systemctl >/dev/null && systemctl --user is-active --quiet mint-cua-relay.service 2>/dev/null; then
+      echo "Relay service: active"
+    else
+      echo "Relay service: inactive or unavailable"
+    fi
+    ;;
+  update)
+    shift
+    target=""
+    allow_downgrade=0
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --allow-downgrade) allow_downgrade=1 ;;
+        [0-9]*.[0-9]*.[0-9]*) [[ -z "$target" ]] || usage; target="$1" ;;
+        *) usage ;;
+      esac
+      shift
+    done
+    command -v flock >/dev/null || { echo "flock is required" >&2; exit 1; }
+    install -d -m 700 "$INSTALL_ROOT"
+    exec 9>"$INSTALL_ROOT/.update-command.lock"
+    flock -n 9 || { echo "Another mint-cua update is running" >&2; exit 1; }
+    current_version="$(installed_version)"
+    if [[ -z "$target" ]]; then
+      release_json="$("${CURL[@]}" "$API_URL")"
+      target="$(python3 -c 'import json,sys; print(json.load(sys.stdin)["tag_name"].removeprefix("v"))' <<<"$release_json")"
+    fi
+    [[ "$target" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid release version: $target" >&2; exit 1; }
+    order="$(python3 - "$current_version" "$target" <<'PY'
+import sys
+current, target = (tuple(map(int, value.split("."))) for value in sys.argv[1:])
+print((target > current) - (target < current))
+PY
+)"
+    if [[ "$order" -lt 0 && "$allow_downgrade" -ne 1 ]]; then
+      echo "Refusing downgrade from $current_version to $target (use --allow-downgrade)" >&2
+      exit 1
+    fi
+    if [[ "$order" -eq 0 ]]; then
+      echo "mint-cua $current_version is already installed"
+      exit 0
+    fi
+    [[ -x "$CURRENT/install.sh" ]] || { echo "Trusted installed updater is missing: $CURRENT/install.sh" >&2; exit 1; }
+    MINT_CUA_VERSION="$target" "$CURRENT/install.sh"
+    ;;
+  *) usage ;;
+esac
